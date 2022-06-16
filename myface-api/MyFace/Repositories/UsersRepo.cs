@@ -16,6 +16,8 @@ namespace MyFace.Repositories
         User Create(CreateUserRequest newUser);
         User Update(int id, UpdateUserRequest update);
         void Delete(int id);
+        public bool CheckUsernameAndPassword(string username, string password);
+        public int GetIdByUsername(string username);
     }
     
     public class UsersRepo : IUsersRepo
@@ -110,6 +112,42 @@ namespace MyFace.Repositories
             var user = GetById(id);
             _context.Users.Remove(user);
             _context.SaveChanges();
+        }
+
+        public bool CheckUsernameAndPassword(string username, string password)
+        {
+            try
+            {
+            var user = _context
+            .Users
+            .Where(u => u.Username == username)
+            .Single();
+
+            var salt = user.Salt;
+            var hashedPassword = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+            password: password,
+            salt: salt,
+            prf: KeyDerivationPrf.HMACSHA256,
+            iterationCount: 100000,
+            numBytesRequested: 256 / 8));
+
+            return (hashedPassword == user.HashedPassword);
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+
+        }
+
+        public int GetIdByUsername(string username)
+        {
+            var user = _context
+                .Users
+                .Where(u => u.Username == username)
+                .Single();
+
+            return (user.Id);
         }
     }
 }
