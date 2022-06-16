@@ -68,11 +68,13 @@ namespace MyFace.Controllers
                 return Unauthorized("Username and Password does not match");
             }
           
-            var post = _posts.Create(newPost);
-            if (_users.GetIdByUsername(username) != post.UserId)
+           
+            if (_users.GetIdByUsername(username) != newPost.UserId)
             {
                 return Unauthorized ("You can post only for yourself");
             }
+
+             var post = _posts.Create(newPost);
             var url = Url.Action("GetById", new { id = post.Id });
             var postResponse = new PostResponse(post);
             return Created(url, postResponse);
