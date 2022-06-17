@@ -60,10 +60,16 @@ export async function fetchPosts(
   page: number,
   pageSize: number
 ): Promise<ListResponse<Post>> {
-  const response = await fetch(
-    `https://localhost:5001/feed?page=${page}&pageSize=${pageSize}`
-  );
-  return await response.json();
+  let response;
+  try {
+    response = await fetch(
+      `https://localhost:5001/feed?page=${page}&pageSize=${pageSize}`
+    );
+  } catch (e) {
+    console.error("Fetch failed");
+  }
+
+  return await response?.json();
 }
 
 export async function fetchPostsForUser(
@@ -99,11 +105,20 @@ export async function fetchPostsDislikedBy(
   return await response.json();
 }
 
-export async function createPost(newPost: NewPost) {
+export async function createPost(
+  newPost: NewPost,
+  username: string,
+  password: string
+) {
+  const details = `${username}:${password}`;
+  const encodedDetails = btoa(details);
+  const authHeader = `Basic ${encodedDetails}`;
+
   const response = await fetch(`https://localhost:5001/posts/create`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Authorisation: authHeader,
     },
     body: JSON.stringify(newPost),
   });
